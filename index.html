@@ -1,1 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101322">
+<title>FocusFlow – Focus Better</title>
+<style>
+:root {
+  --bg: #101322;
+  --panel: #191e32;
+  --panel2: #222942;
+  --text: #f4f5ff;
+  --muted: #a0a8c0;
+  --accent: #9b8cff;
+  --green: #65d6a0;
+  --border: #303851;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, sans-serif;
+  min-height: 100vh;
+}
+button, input { font: inherit; }
+button { cursor: pointer; }
+.container { max-width: 1050px; margin: auto; padding: 28px 20px; }
+header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 35px;
+}
+.logo { font-size: 23px; font-weight: 800; letter-spacing: -1px; }
+.logo span { color: var(--accent); }
+.tag { color: var(--muted); font-size: 13px; }
+h1 { font-size: clamp(27px, 5vw, 40px); margin: 0 0 8px; }
+.subtitle { color: var(--muted); margin: 0 0 28px; }
+.grid {
+  display: grid; grid-template-columns: 1.2fr .8fr;
+  gap: 20px;
+}
+.panel {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 18px; padding: 25px;
+}
+.panel h2 { font-size: 17px; margin: 0 0 20px; }
+.timer-panel { text-align: center; }
+.modes { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.modes button, .secondary {
+  background: var(--panel2); border: 1px solid var(--border);
+  color: var(--muted); border-radius: 9px;
+  padding: 10px 14px;
+}
+.modes button.active { background: var(--accent); color: #17132c; border-color: var(--accent); }
+.clock {
+  font-size: clamp(65px, 13vw, 100px);
+  font-weight: 750; letter-spacing: -5px;
+  margin: 20px 0 5px; font-variant-numeric: tabular-nums;
+}
+.timer-label { color: var(--muted); margin-bottom: 22px; }
+.primary {
+  border: 0; background: var(--accent); color: #17132c;
+  font-weight: 750; border-radius: 10px;
+  padding: 13px 30px; min-width: 120px;
+}
+.primary:hover { filter: brightness(1.1); }
+.secondary:hover, .modes button:hover { border-color: var(--accent); }
+.timer-actions { display: flex; justify-content: center; gap: 10px; }
+.stats {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 10px; margin-top: 22px;
+}
+.stat {
+  background: var(--panel2); padding: 14px 8px;
+  border-radius: 12px;
+}
+.stat strong { display: block; font-size: 24px; }
+.stat small { color: var(--muted); font-size: 11px; }
+.task-input { display: flex; gap: 8px; margin-bottom: 18px; }
+input {
+  min-width: 0; flex: 1; background: var(--panel2);
+  border: 1px solid var(--border); border-radius: 9px;
+  padding: 12px; color: var(--text); outline: none;
+}
+input:focus { border-color: var(--accent); }
+.task-list { list-style: none; padding: 0; margin: 0; }
+.task-list li {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 4px; border-bottom: 1px solid var(--border);
+}
+.task-list li span { flex: 1; overflow-wrap: anywhere; }
+.task-list li.done span { text-decoration: line-through; color: var(--muted); }
+.task-list input[type=checkbox] { flex: 0 0 17px; accent-color: var(--green); }
+.delete {
+  border: 0; background: transparent; color: #ff929e;
+  font-size: 18px; padding: 5px;
+}
+.empty { color: var(--muted); font-size: 13px; text-align: center; padding: 18px; }
+footer { text-align: center; color: var(--muted); font-size: 12px; padding: 28px 0; }
+@media(max-width:700px) {
+  .grid { grid-template-columns: 1fr; }
+  .container { padding: 20px 14px; }
+  header { margin-bottom: 28px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">Focus<span>Flow.</span></div>
+    <div class="tag">Your space to focus ✨</div>
+  </header>
+
+  <h1>Make today count.</h1>
+  <p class="subtitle">Small focused sessions. Meaningful progress.</p>
+
+  <main class="grid">
+    <section class="panel timer-panel">
+      <h2>Focus timer</h2>
+      <div class="modes">
+        <button class="active" data-mode="focus">Focus</button>
+        <button data-mode="short">Short break</button>
+        <button data-mode="long">Long break</button>
+      </div>
+      <div class="clock" id="clock">25:00</div>
+      <div class="timer-label" id="timerLabel">Time to concentrate</div>
+      <div class="timer-actions">
+        <button class="primary" id="startBtn">Start</button>
+        <button class="secondary" id="resetBtn">Reset</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><strong id="sessions">0</strong><small>Sessions today</small></div>
+        <div class="stat"><strong id="minutes">0</strong><small>Focus minutes</small></div>
+        <div class="stat"><strong id="tasksDone">0</strong><small>Tasks completed</small></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>My tasks</h2>
+      <form class="task-input" id="taskForm">
+        <input id="taskInput" maxlength="100" placeholder="What needs your focus?" required>
+        <button class="primary" type="submit">Add</button>
+      </form>
+      <ul class="task-list" id="taskList"></ul>
+      <p class="empty" id="emptyMessage">No tasks yet. Add one to get started!</p>
+    </section>
+  </main>
+
+  <footer>FocusFlow · Built for better habits · Open source</footer>
+</div>
+
+<script>
+const durations = {
+  focus: 25 * 60,
+  short: 5 * 60,
+  long: 15 * 60
+};
+
+const labels = {
+  focus: "Time to concentrate",
+  short: "Take a little breather",
+  long: "Relax and recharge"
+};
+
+let mode = "focus";
+let remaining = durations.focus;
+let interval = null;
+let running = false;
+
+const today = new Date().toISOString().slice(0, 10);
+const saved = JSON.parse(localStorage.getItem("focusflow-data") || "{}");
+
+let data = saved.date === today
+  ? saved
+  : { date: today, sessions: 0, minutes: 0, tasks: [] };
+
+data.tasks = Array.isArray(data.tasks) ? data.tasks : [];
+
+const clock = document.getElementById("clock");
+const startBtn = document.getElementById("startBtn");
+const resetBtn = document.getElementById("resetBtn");
+
+function save() {
+  localStorage.setItem("focusflow-data", JSON.stringify(data));
+}
+
+function render() {
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+  clock.textContent =
+    String(mins).padStart(2, "0") + ":" +
+    String(secs).padStart(2, "0");
+
+  document.getElementById("timerLabel").textContent = labels[mode];
+  document.getElementById("sessions").textContent = data.sessions;
+  document.getElementById("minutes").textContent = data.minutes;
+  document.getElementById("tasksDone").textContent =
+    data.tasks.filter(t => t.done).length;
+
+  startBtn.textContent = running ? "Pause" : "Start";
+  document.title = `${clock.textContent} – FocusFlow`;
+}
+
+function stopTimer() {
+  clearInterval(interval);
+  interval = null;
+  running = false;
+}
+
+function finishSession() {
+  stopTimer();
+
+  if (mode === "focus") {
+    data.sessions++;
+    data.minutes += 25;
+    save();
+    alert("Great work! Focus session completed. Take a break.");
+  } else {
+    alert("Break completed. Ready to focus again?");
+  }
+
+  render();
+}
+
+function tick() {
+  remaining--;
+
+  if (remaining <= 0) {
+    remaining = 0;
+    render();
+    finishSession();
+    return;
+  }
+
+  render();
+}
+
+startBtn.addEventListener("click", () => {
+  if (running) {
+    stopTimer();
+  } else {
+    running = true;
+    interval = setInterval(tick, 1000);
+  }
+  render();
+});
+
+resetBtn.addEventListener("click", () => {
+  stopTimer();
+  remaining = durations[mode];
+  render();
+});
+
+document.querySelectorAll("[data-mode]").forEach(button => {
+  button.addEventListener("click", () => {
+    stopTimer();
+    mode = button.dataset.mode;
+    remaining = durations[mode];
+
+    document.querySelectorAll("[data-mode]").forEach(b =>
+      b.classList.toggle("active", b === button)
+    );
+
+    render();
+  });
+});
+
+document.getElementById("taskForm").addEventListener("submit", e => {
+  e.preventDefault();
+
+  const input = document.getElementById("taskInput");
+  const title = input.value.trim();
+
+  if (!title) return;
+
+  data.tasks.push({
+    id: Date.now(),
+    title,
+    done: false
+  });
+
+  input.value = "";
+  save();
+  renderTasks();
+  render();
+});
+
+function renderTasks() {
+  const list = document.getElementById("taskList");
+  list.innerHTML = "";
+
+  document.getElementById("emptyMessage").style.display =
+    data.tasks.length ? "none" : "block";
+
+  data.tasks.forEach(task => {
+    const li = document.createElement("li");
+    li.className = task.done ? "done" : "";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = task.done;
+    checkbox.setAttribute("aria-label", "Complete " + task.title);
+
+    checkbox.addEventListener("change", () => {
+      task.done = checkbox.checked;
+      save();
+      renderTasks();
+      render();
+    });
+
+    const span = document.createElement("span");
+    span.textContent = task.title;
+
+    const remove = document.createElement("button");
+    remove.className = "delete";
+    remove.textContent = "×";
+    remove.setAttribute("aria-label", "Delete " + task.title);
+
+    remove.addEventListener("click", () => {
+      data.tasks = data.tasks.filter(t => t.id !== task.id);
+      save();
+      renderTasks();
+      render();
+    });
+
+    li.append(checkbox, span, remove);
+    list.appendChild(li);
+  });
+}
+
+renderTasks();
+render();
+</script>
+</body>
+</html>
 
